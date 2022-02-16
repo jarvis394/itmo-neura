@@ -12,6 +12,7 @@ python-dotenv = "^0.19.2"
 aiohttp = "^3.8.1"
 aioschedule = "^0.5.2"
 loguru = "^0.6.0"
+aiofile = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.1.0", allow-prereleases = true}

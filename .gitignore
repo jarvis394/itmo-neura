@@ -1,6 +1,7 @@
 # Mac/OSX
 .DS_Store
 
+messages/
 poetry.lock
 
 # Byte-compiled / optimized / DLL files

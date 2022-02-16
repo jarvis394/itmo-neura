@@ -1,4 +1,10 @@
-from config.constants import BOT_MENTION_PREFIX, BOT_PREFIX
+from typing import List
+from config.constants import (
+    BOT_MENTION_PREFIX,
+    BOT_PREFIX,
+    ROOT_DIR,
+    MESSAGES_MODELS_DIR,
+)
 from config.keys import HOST, PORT, TELEGRAM_BOT_API_TOKEN
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
@@ -9,6 +15,8 @@ import aioschedule
 import asyncio
 import telebot
 import sys
+import utils.messages_database as messages_database
+import os
 
 
 class ExceptionHandler(telebot.ExceptionHandler):
@@ -16,7 +24,7 @@ class ExceptionHandler(telebot.ExceptionHandler):
         logger.exception(exception)
 
 
-def command_handler(message: types.Message, command: str):
+def command_handler(message: types.Message, command: List[str]):
     """
     Custom message handler that activates on mention or slash commands
 
@@ -27,14 +35,18 @@ def command_handler(message: types.Message, command: str):
     args = text.split(" ")
 
     if len(args) > 1:
-        return args[0].startswith(BOT_MENTION_PREFIX) and args[1] == command
+        return args[0].startswith(BOT_MENTION_PREFIX) and args[1] in command
     elif len(args) == 1:
-        return args[0].startswith(BOT_PREFIX)
+        return args[0].startswith(BOT_PREFIX) and text[len(BOT_PREFIX) :] in command
     else:
         return False
 
 
 bot = AsyncTeleBot(TELEGRAM_BOT_API_TOKEN, exception_handler=ExceptionHandler())
+
+# Create folder for messages models if it not exists
+if not os.path.exists(MESSAGES_MODELS_DIR):
+    os.makedirs(MESSAGES_MODELS_DIR)
 
 
 @bot.my_chat_member_handler()
@@ -44,15 +56,25 @@ async def join_message(message: types.ChatMemberUpdated):
         await bot.send_message(message.chat.id, Reply.ON_GROUP_JOIN)
 
 
-@bot.message_handler(func=partial(command_handler, command="start"))
+@bot.message_handler(func=partial(command_handler, command=["start"]))
 async def start(message: types.Message):
     await bot.send_message(message.chat.id, "Hello!")
-    raise Exception("oops!")
+
+
+@bot.message_handler(func=partial(command_handler, command=["gen", "generate"]))
+async def start(message: types.Message):
+    try:
+        sentence = await messages_database.generate_sentence(message)
+        await bot.send_message(message.chat.id, sentence)
+    except Exception as e:
+        # TODO: Possibly format error messages differently
+        await bot.send_message(message.chat.id, e)
 
 
 @bot.message_handler(func=lambda _: True, content_types=["text"])
 async def collect(message: types.Message):
     print(message.text)
+    await messages_database.collect_message(message)
 
 
 async def scheduler():
