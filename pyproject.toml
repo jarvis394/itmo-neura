@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "neura"
+version = "0.1.0"
+description = ""
+authors = ["jarvis394 <tarnatovski@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pyTelegramBotAPI = "^4.4.0"
+fastapi = "^0.73.0"
+python-dotenv = "^0.19.2"
+aiohttp = "^3.8.1"
+aioschedule = "^0.5.2"
+loguru = "^0.6.0"
+
+[tool.poetry.dev-dependencies]
+black = {version = "^22.1.0", allow-prereleases = true}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
