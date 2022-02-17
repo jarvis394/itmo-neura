@@ -1,4 +1,10 @@
-# neura
+<p align="left"><img  src="./.github/images/text_logo_neura.png" alt="neura logo" /></p>
+
+## About
+
+**neura** is a fun Telegram bot that generates messages based on the message history
+
+Invite: [t.me/itmo_neura_bot](https://t.me/itmo_neura_bot)
 
 ## Getting started
 

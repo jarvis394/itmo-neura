@@ -13,6 +13,9 @@ aiohttp = "^3.8.1"
 aioschedule = "^0.5.2"
 loguru = "^0.6.0"
 aiofile = "^3.7.4"
+aiosqlite = "^0.17.0"
+SQLAlchemy = "^1.4.31"
+Cython = "^0.29.28"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.1.0", allow-prereleases = true}
