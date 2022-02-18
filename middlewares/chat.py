@@ -8,6 +8,8 @@ from utils import is_command
 
 
 class ChatMiddleware(BaseMiddleware):
+    name = "ChatMiddleware"
+
     def __init__(self) -> None:
         self.update_types = ["message"]
 

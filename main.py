@@ -21,15 +21,37 @@ from config.bot import bot, MESSAGES
 
 
 # Add middlewares dynamically
+_middlewares_loaded = 0
 for MiddlewareClass in MIDDLEWARES:
-    bot.setup_middleware(MiddlewareClass())
+    middleware_name = MiddlewareClass.name
+    _middlewares_loaded += 1
+    try:
+        bot.setup_middleware(MiddlewareClass())
+        logger.success(
+            f'Loaded middleware "{middleware_name}" ({_middlewares_loaded}/{len(MIDDLEWARES)})'
+        )
+    except Exception as e:
+        logger.critical(
+            f'Could not load middleware "{middleware_name}" (very bad): {e}'
+        )
+        _middlewares_loaded -= 1
 
 # Add commands dynamically
+_commands_loaded = 0
 for CommandClass in COMMANDS:
+    command_name = CommandClass.name
     c = CommandClass()
-    bot.add_message_handler(
-        bot._build_handler_dict(c.exec, func=partial(is_command, command=c))
-    )
+    _commands_loaded += 1
+    try:
+        bot.add_message_handler(
+            bot._build_handler_dict(c.exec, func=partial(is_command, command=c))
+        )
+        logger.success(
+            f"Loaded command /{command_name} ({_commands_loaded}/{len(COMMANDS)})"
+        )
+    except Exception as e:
+        logger.critical(f'Could not load command "{command_name}" (very bad): {e}')
+        _commands_loaded -= 1
 
 # Create folder for messages models if it not exists
 if not os.path.exists(MESSAGES_SAMPLES_DIR):
