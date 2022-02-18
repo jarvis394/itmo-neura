@@ -17,9 +17,8 @@ import aioschedule
 import asyncio
 import telebot
 import sys
-from utils.generator import generator
+from utils import generator, format
 from utils.messages import MessagesStorage
-import utils.format as format
 import os
 
 
@@ -38,7 +37,7 @@ class ChatMiddleware(BaseMiddleware):
         self.update_types = ["message"]
 
     async def pre_process(self, message: types.Message, data):
-        help_command = command_handler(message, command=Command.HELP)
+        start_command = command_handler(message, command=Command.START)
 
         if (
             message.chat.type
@@ -46,7 +45,7 @@ class ChatMiddleware(BaseMiddleware):
                 "group",
                 "superchat",
             ]
-            and help_command
+            and not start_command
         ):
             await bot.send_message(message.chat.id, Reply.ON_NOT_IN_GROUP)
             return CancelUpdate()
@@ -111,11 +110,16 @@ async def help(message: types.Message):
 @bot.message_handler(func=partial(command_handler, command=Command.GENERATE))
 async def generate(message: types.Message):
     storage = MessagesStorage(message.chat.id)
-    messages = (await storage.get()).extend(
+    messages = await storage.get()
+    messages.extend(
         MESSAGES.get(message.chat.id) or []
     )  # Extend storage samples with samples in memory
 
-    sentence = generator.generate(samples=messages, attempts=50)
+    try:
+        sentence = generator.generate(samples=messages, attempts=50)
+    except Exception as e:
+        logger.error(f"Could not generate message (should be critical error): {e}")
+
     if sentence:
         sentence = format.censor_sentence(sentence)
         sentence = format.improve_sentence(sentence)
@@ -169,7 +173,7 @@ async def scheduler():
 async def main():
     logger.info("Started Telegram polling and async schedulers")
     await asyncio.gather(
-        set_bot_commands(bot), scheduler(), flush_messages(), bot.polling()
+        set_bot_commands(bot), scheduler(), flush_messages(), bot.infinity_polling()
     )
 
 

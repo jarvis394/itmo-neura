@@ -1,23 +1,18 @@
 from random import choice
+from typing import Dict, List
 
 
-cdef str START = "__START___"
-cdef str END = "__END___"
+START = "__START___"
+END = "__END___"
 
 
-def generate(list samples, int attempts):
+def generate(samples: List[str], attempts: int):
     if not samples:
         return None
 
-    cdef list frames = []
-    cdef list start_frames = []
-    cdef dict frame_map = {}
-    cdef list sample_words
-    cdef list words
-    cdef str sentence
-    cdef str next_frame
-    cdef str sample
-    cdef int i
+    frames: List[str] = []
+    start_frames: List[str] = []
+    frame_map: Dict[str, List[str]] = {}
 
     for sample in samples:
         sample_words = sample.split(" ")
@@ -41,8 +36,10 @@ def generate(list samples, int attempts):
 
         for frame in words:
             next_frame = choice(frame_map[frame])
-            if next_frame == END: break
-            else: words.append(next_frame)
+            if next_frame == END:
+                break
+            else:
+                words.append(next_frame)
 
         sentence = " ".join(words)
 
