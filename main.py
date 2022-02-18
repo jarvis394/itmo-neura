@@ -1,93 +1,66 @@
-from typing import Any, Dict, List, Set
+from typing import Any, Set
 from config.constants import (
-    BOT_MENTION_PREFIX,
-    BOT_PREFIX,
     MESSAGES_SAMPLES_DIR,
     MESSAGES_FLUSH_INTERVAL,
 )
-from config.keys import TELEGRAM_BOT_API_TOKEN
-from telebot.async_telebot import AsyncTeleBot, CancelUpdate
-from telebot.asyncio_handler_backends import BaseMiddleware
 from telebot import types
 from loguru import logger
 from functools import partial
-from config.commands import Command, set_bot_commands
+from commands import COMMANDS
+from middlewares import MIDDLEWARES
+from config.commands import set_bot_commands
 from config.replies import Reply
 import aioschedule
 import asyncio
-import telebot
 import sys
-from utils import generator, format
+from utils import is_command
 from utils.messages import MessagesStorage
 import os
 from db.config import engine, Base, async_session
+from config.bot import bot, MESSAGES
 
 
-# This is used to store messages in memory and then
-# flush them into storage when they overflow
-MESSAGES: Dict[int, List[str]] = {}
-
-
-class ExceptionHandler(telebot.ExceptionHandler):
-    def handle(self, exception):
-        logger.exception(exception)
-
-
-class ChatMiddleware(BaseMiddleware):
-    def __init__(self) -> None:
-        self.update_types = ["message"]
-
-    async def pre_process(self, message: types.Message, data):
-        start_command = message.content_type == "text" and command_handler(
-            message, command=Command.START
+# Add middlewares dynamically
+_middlewares_loaded = 0
+for MiddlewareClass in MIDDLEWARES:
+    middleware_name = MiddlewareClass.name
+    _middlewares_loaded += 1
+    try:
+        bot.setup_middleware(MiddlewareClass())
+        logger.success(
+            f'Loaded middleware "{middleware_name}" ({_middlewares_loaded}/{len(MIDDLEWARES)})'
         )
-
-        if (
-            message.chat.type
-            not in [
-                "group",
-                "superchat",
-            ]
-            and not start_command
-        ):
-            await bot.send_message(message.chat.id, Reply.ON_NOT_IN_GROUP)
-            return CancelUpdate()
-
-    async def post_process(self, message, data, exception):
-        pass
-
-
-def command_handler(message: types.Message, command: List[str]):
-    """
-    Custom message handler that activates on mention or slash commands
-
-    Example:
-    /start or @mention_prefix start or @mention_prefix, start
-    """
-    text = message.text.strip()
-    args = text.split(" ")
-
-    if len(args) > 1:
-        return args[0].startswith(BOT_MENTION_PREFIX) and args[1] in command
-    elif len(args) == 1:
-        return args[0].startswith(BOT_PREFIX) and (
-            text[len(BOT_PREFIX) :] in command
-            or text[len(BOT_PREFIX) : -len(BOT_MENTION_PREFIX)] in command
+    except Exception as e:
+        logger.critical(
+            f'Could not load middleware "{middleware_name}" (very bad): {e}'
         )
-    else:
-        return False
+        _middlewares_loaded -= 1
 
-
-bot = AsyncTeleBot(
-    TELEGRAM_BOT_API_TOKEN, exception_handler=ExceptionHandler(), parse_mode="markdown"
-)
-bot.setup_middleware(ChatMiddleware())
+# Add commands dynamically
+_commands_loaded = 0
+for CommandClass in COMMANDS:
+    command_name = CommandClass.name
+    c = CommandClass()
+    _commands_loaded += 1
+    try:
+        bot.add_message_handler(
+            bot._build_handler_dict(c.exec, func=partial(is_command, command=c))
+        )
+        logger.success(
+            f"Loaded command /{command_name} ({_commands_loaded}/{len(COMMANDS)})"
+        )
+    except Exception as e:
+        logger.critical(f'Could not load command "{command_name}" (very bad): {e}')
+        _commands_loaded -= 1
 
 # Create folder for messages models if it not exists
 if not os.path.exists(MESSAGES_SAMPLES_DIR):
     os.makedirs(MESSAGES_SAMPLES_DIR)
 
 
+# TODO: make handlers be in a folder alongside with commands
+# and commands should be executed in bot.message_handler
+# which listens for all messages
 @bot.my_chat_member_handler()
 async def join_message(message: types.ChatMemberUpdated):
     if message.new_chat_member.status == "member":
@@ -98,48 +71,6 @@ async def join_message(message: types.ChatMemberUpdated):
             logger.warning(
                 f"Could not sent welcome message in chat {message.chat.id} (maybe writing is restricted?): {e}"
             )
-
-
-@bot.message_handler(func=partial(command_handler, command=Command.START))
-async def start(message: types.Message):
-    await bot.send_message(message.chat.id, Reply.ON_START)
-
-
-@bot.message_handler(func=partial(command_handler, command=Command.HELP))
-async def help(message: types.Message):
-    await bot.send_message(message.chat.id, Reply.ON_HELP)
-
-
-@bot.message_handler(func=partial(command_handler, command=Command.COUNT))
-async def count(message: types.Message):
-    storage = MessagesStorage(message.chat.id)
-    c = await storage.count()
-    c += len(MESSAGES.get(message.chat.id))
-    await bot.send_message(message.chat.id, f"✨ Сохранено {c} строк для обучения")
-
-
-@bot.message_handler(func=partial(command_handler, command=Command.GENERATE))
-async def generate(message: types.Message):
-    storage = MessagesStorage(message.chat.id)
-    messages = await storage.get()
-    messages.extend(
-        MESSAGES.get(message.chat.id) or []
-    )  # Extend storage samples with samples in memory
-
-    try:
-        sentence = generator.generate(samples=messages, attempts=50)
-    except Exception as e:
-        logger.error(f"Could not generate message (should be critical error): {e}")
-
-    if sentence:
-        sentence = format.censor_sentence(sentence)
-        sentence = format.improve_sentence(sentence)
-        await bot.send_message(message.chat.id, sentence)
-    else:  # Not enough samples to generate message
-        logger.warning(
-            f"Generate command failed for chat {message.chat.id}: not enough messages"
-        )
-        await bot.send_message(message.chat.id, Reply.ON_MESSAGES_DB_TOO_SMALL)
 
 
 @bot.message_handler(func=lambda _: True, content_types=["text"])
