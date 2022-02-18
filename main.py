@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Set
 from config.constants import (
     BOT_MENTION_PREFIX,
     BOT_PREFIX,
@@ -194,6 +194,34 @@ async def scheduler():
         await asyncio.sleep(1)
 
 
+def _cancel_tasks(
+    to_cancel: Set[asyncio.Task[Any]], loop: asyncio.AbstractEventLoop
+) -> None:
+    if not to_cancel:
+        return
+
+    for task in to_cancel:
+        task.cancel()
+
+    # In order to cancel all tasks, we need to run them again
+    loop.run_until_complete(asyncio.gather(*to_cancel, return_exceptions=True))
+
+    for task in to_cancel:
+        if task.cancelled():
+            continue
+        if task.exception() is not None:
+            logger.error(
+                f"Got an exception on trying to cancel async task: {task.exception()}"
+            )
+            loop.call_exception_handler(
+                {
+                    "message": "Unhandled exception during asyncio.run() shutdown",
+                    "exception": task.exception(),
+                    "task": task,
+                }
+            )
+
+
 async def main():
     logger.info("Started Telegram polling and async schedulers")
     await asyncio.gather(
@@ -201,13 +229,23 @@ async def main():
         db_setup(),
         scheduler(),
         flush_messages(),
-        bot.infinity_polling(),
+        bot.polling(non_stop=True),
     )
 
 
 if __name__ == "__main__":
+    loop = asyncio.new_event_loop()
+    main_task = loop.create_task(main())
+
     try:
-        asyncio.run(main())
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(main_task)
     except KeyboardInterrupt:
-        logger.info("Stopping polling by user request")
+        pass
+    finally:
+        logger.info("Stopping bot by user request...")
+        _cancel_tasks({main_task, *asyncio.all_tasks(loop)}, loop)
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.close()
+        asyncio.set_event_loop(None)
         sys.exit(0)
