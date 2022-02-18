@@ -20,6 +20,7 @@ import sys
 from utils import generator, format
 from utils.messages import MessagesStorage
 import os
+from db.config import engine, Base, async_session
 
 
 # This is used to store messages in memory and then
@@ -37,7 +38,9 @@ class ChatMiddleware(BaseMiddleware):
         self.update_types = ["message"]
 
     async def pre_process(self, message: types.Message, data):
-        start_command = command_handler(message, command=Command.START)
+        start_command = message.content_type == "text" and command_handler(
+            message, command=Command.START
+        )
 
         if (
             message.chat.type
@@ -107,6 +110,14 @@ async def help(message: types.Message):
     await bot.send_message(message.chat.id, Reply.ON_HELP)
 
 
+@bot.message_handler(func=partial(command_handler, command=Command.COUNT))
+async def count(message: types.Message):
+    storage = MessagesStorage(message.chat.id)
+    c = await storage.count()
+    c += len(MESSAGES.get(message.chat.id))
+    await bot.send_message(message.chat.id, f"✨ Сохранено {c} строк для обучения")
+
+
 @bot.message_handler(func=partial(command_handler, command=Command.GENERATE))
 async def generate(message: types.Message):
     storage = MessagesStorage(message.chat.id)
@@ -161,6 +172,15 @@ async def flush_messages():
         await asyncio.sleep(MESSAGES_FLUSH_INTERVAL)
 
 
+async def db_setup():
+    """
+    Sets up DB tables
+    """
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+
+
 async def scheduler():
     """
     Runs `aioschedule` tasks in specified interval
@@ -173,7 +193,7 @@ async def scheduler():
 async def main():
     logger.info("Started Telegram polling and async schedulers")
     await asyncio.gather(
-        set_bot_commands(bot), scheduler(), flush_messages(), bot.infinity_polling()
+        set_bot_commands(bot), db_setup(), scheduler(), flush_messages(), bot.infinity_polling()
     )
 
 

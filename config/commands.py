@@ -21,6 +21,7 @@ async def set_bot_commands(bot: AsyncTeleBot):
                 "generate", "Generates a random message based on chat history"
             ),
             types.BotCommand("help", "Sends bot's commands"),
+            types.BotCommand("count", "Sends a number of saved messages to learn on"),
         ],
         scope=types.BotCommandScopeAllGroupChats(),
     )

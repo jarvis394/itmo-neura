@@ -40,6 +40,9 @@ class MessagesStorage:
             line = ";".join([escape_string(message) for message in messages])
             return await f.write(line + ";")
 
+    async def count(self) -> int:
+        return len(await self.get())
+
     async def get(self) -> List[str]:
         try:
             async with async_open(self.pathname, "r", encoding="utf-8") as f:
