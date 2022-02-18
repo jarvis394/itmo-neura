@@ -150,6 +150,10 @@ async def collect(message: types.Message):
     if message.chat.type not in ["group", "superchat"]:
         return
 
+    # Message is only collected when it consists at least of 2 words
+    if len(message.text.split(" ")) < 2:
+        return
+
     if chat_id in MESSAGES:
         MESSAGES[chat_id].append(message.text)
     else:
@@ -193,7 +197,11 @@ async def scheduler():
 async def main():
     logger.info("Started Telegram polling and async schedulers")
     await asyncio.gather(
-        set_bot_commands(bot), db_setup(), scheduler(), flush_messages(), bot.infinity_polling()
+        set_bot_commands(bot),
+        db_setup(),
+        scheduler(),
+        flush_messages(),
+        bot.infinity_polling(),
     )
 
 
