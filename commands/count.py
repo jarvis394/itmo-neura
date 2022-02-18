@@ -16,4 +16,6 @@ class CountCommand(Command):
         storage = MessagesStorage(message.chat.id)
         samples = await storage.count()
         samples += len(MESSAGES.get(message.chat.id) or [])
-        await bot.send_message(message.chat.id, f"✨ Сохранено {samples} строк для обучения")
+        return await bot.send_message(
+            message.chat.id, f"✨ Сохранено {samples} строк для обучения"
+        )
