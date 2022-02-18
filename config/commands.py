@@ -2,13 +2,6 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 
 
-class Command:
-    COUNT = ["count"]
-    GENERATE = ["g", "gen", "generate", "г"]
-    HELP = ["help", "помощь"]
-    START = ["start"]
-
-
 async def set_bot_commands(bot: AsyncTeleBot):
     # TODO: dynamically generate bot commands
     """
