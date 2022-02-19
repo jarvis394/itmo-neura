@@ -22,8 +22,9 @@ Fill `.env` file with environment values:
 ```bash
 # paste actual token here
 TELEGRAM_BOT_API_TOKEN=
-PORT=3000
-HOST=localhost
+PORT=4000
+HOST=0.0.0.0
+WEBHOOK_HOST=********.ngrok.io
 ```
 
 Then, run
