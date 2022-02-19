@@ -10,14 +10,14 @@ from commands import COMMANDS
 from middlewares import MIDDLEWARES
 from config.commands import set_bot_commands
 from config.replies import Reply
+from utils import is_command
+from lib.messages import MessagesStorage
+from lib.db.config import engine, Base, async_session
+from config.bot import bot, MESSAGES
 import aioschedule
 import asyncio
 import sys
-from utils import is_command
-from utils.messages import MessagesStorage
 import os
-from db.config import engine, Base, async_session
-from config.bot import bot, MESSAGES
 
 
 # Add middlewares dynamically

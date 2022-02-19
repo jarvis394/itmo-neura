@@ -1,4 +1,4 @@
-from utils.messages import MessagesStorage
+from lib.messages import MessagesStorage
 from lib.command import Command
 import telebot.types as types
 from utils import generator, format

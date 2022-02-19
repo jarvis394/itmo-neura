@@ -1,7 +1,8 @@
 from lib.command import Command
-from utils.messages import MessagesStorage
+from lib.messages import MessagesStorage
 import telebot.types as types
 from config.bot import bot, MESSAGES
+from config.replies import Reply
 
 
 class CountCommand(Command):
@@ -17,5 +18,5 @@ class CountCommand(Command):
         samples = await storage.count()
         samples += len(MESSAGES.get(message.chat.id) or [])
         return await bot.send_message(
-            message.chat.id, f"✨ Сохранено {samples} строк для обучения"
+            message.chat.id, Reply.ON_COUNT_COMMAND_REPLY.format(samples)
         )

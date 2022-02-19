@@ -2,9 +2,8 @@ import os
 from typing import List
 from aiofile import async_open
 from telebot import types
-from config.replies import Reply
 from config.constants import MESSAGES_SAMPLES_DIR
-from .format import unescape_string, escape_string
+from utils.format import unescape_string, escape_string
 
 
 def parse_raw(raw: str) -> List[str]:

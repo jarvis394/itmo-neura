@@ -18,6 +18,7 @@ greenlet = "^1.1.2"
 pytest = "^7.0.1"
 pytest-mock = "^3.7.0"
 pytest-trio = "^0.7.0"
+pytest-cov = "^3.0.0"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.1.0", allow-prereleases = true}
