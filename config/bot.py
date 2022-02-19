@@ -1,14 +1,8 @@
 from typing import List, Dict
-from telebot.async_telebot import AsyncTeleBot, CancelUpdate
-from telebot.asyncio_handler_backends import BaseMiddleware
-
-# from commands.start import StartCommand
+from telebot.async_telebot import AsyncTeleBot
 from config.keys import TELEGRAM_BOT_API_TOKEN
-from config.replies import Reply
 import telebot
 from loguru import logger
-from telebot import types
-from utils import is_command
 
 
 class ExceptionHandler(telebot.ExceptionHandler):
@@ -23,4 +17,3 @@ MESSAGES: Dict[int, List[str]] = {}
 bot = AsyncTeleBot(
     TELEGRAM_BOT_API_TOKEN, exception_handler=ExceptionHandler(), parse_mode="markdown"
 )
-# bot.setup_middleware(ChatMiddleware())
