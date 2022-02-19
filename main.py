@@ -1,24 +1,41 @@
-from typing import Any, Set
 from config.constants import (
     MESSAGES_SAMPLES_DIR,
     MESSAGES_FLUSH_INTERVAL,
 )
 from telebot import types
+from telebot.asyncio_helper import session_manager
 from loguru import logger
 from functools import partial
 from commands import COMMANDS
+from config.keys import HOST, PORT, WEBHOOK_URL_BASE, WEBHOOK_URL_PATH
+from config.app import app
 from middlewares import MIDDLEWARES
 from config.commands import set_bot_commands
 from config.replies import Reply
-from utils import is_command
+from utils import is_command, cancel_tasks
 from lib.messages import MessagesStorage
 from lib.db.config import engine, Base, async_session
 from config.bot import bot, MESSAGES
+from uvicorn import Config, Server
 import aioschedule
 import asyncio
 import sys
 import os
+from uvicorn.main import Server
 
+
+class AppStatus:
+    should_exit = False
+
+    @staticmethod
+    def handle_exit(*args, **kwargs):
+        AppStatus.should_exit = True
+        original_handler(*args, **kwargs)
+
+
+# Monkey patch exit handler for `uvicorn` server
+original_handler = Server.handle_exit
+Server.handle_exit = AppStatus.handle_exit
 
 # Add middlewares dynamically
 _middlewares_loaded = 0
@@ -93,18 +110,24 @@ async def collect(message: types.Message):
 
 async def flush_messages():
     """
-    Flushes `MESSAGES` dict to the storage at specified interval
+    Flushes `MESSAGES` dict to the storage
     """
-    while True:
-        if len(MESSAGES) != 0:
-            logger.info(f"Flushing messages into storage: {MESSAGES}")
-            for chat_id, messages in MESSAGES.items():
-                storage = MessagesStorage(chat_id)
-                await storage.push(messages)
+    if len(MESSAGES) != 0:
+        logger.info(f"Flushing messages into storage: {MESSAGES}")
+        for chat_id, messages in MESSAGES.items():
+            storage = MessagesStorage(chat_id)
+            await storage.push(messages)
 
-            MESSAGES.clear()
+        MESSAGES.clear()
 
-        await asyncio.sleep(MESSAGES_FLUSH_INTERVAL)
+
+async def scheduler():
+    """
+    Runs `aioschedule` tasks in specified interval
+    """
+    while AppStatus.should_exit is False:
+        await aioschedule.run_pending()
+        await asyncio.sleep(0.1)
 
 
 async def db_setup():
@@ -116,51 +139,22 @@ async def db_setup():
         await conn.run_sync(Base.metadata.create_all)
 
 
-async def scheduler():
-    """
-    Runs `aioschedule` tasks in specified interval
-    """
-    while True:
-        await aioschedule.run_pending()
-        await asyncio.sleep(1)
-
-
-def _cancel_tasks(
-    to_cancel: Set[asyncio.Task[Any]], loop: asyncio.AbstractEventLoop
-) -> None:
-    if not to_cancel:
-        return
-
-    for task in to_cancel:
-        task.cancel()
-
-    # In order to cancel all tasks, we need to run them again
-    loop.run_until_complete(asyncio.gather(*to_cancel, return_exceptions=True))
-
-    for task in to_cancel:
-        if task.cancelled():
-            continue
-        if task.exception() is not None:
-            logger.error(
-                f"Got an exception on trying to cancel async task: {task.exception()}"
-            )
-            loop.call_exception_handler(
-                {
-                    "message": "Unhandled exception during asyncio.run() shutdown",
-                    "exception": task.exception(),
-                    "task": task,
-                }
-            )
-
-
 async def main():
-    logger.info("Started Telegram polling and async schedulers")
+    logger.info("Started Telegram bot and async schedulers")
+    logger.info(f"Started FastAPI webhooks service on port {PORT}")
+    config = Config(app=app, loop=asyncio.get_event_loop(), port=PORT, host=HOST)
+    server = Server(config)
+
+    aioschedule.every(MESSAGES_FLUSH_INTERVAL).seconds.do(flush_messages).tag(0)
+
     await asyncio.gather(
-        set_bot_commands(bot),
+        session_manager.session.close(),  # Fixes aiohttp warning for unclosed session
         db_setup(),
+        set_bot_commands(),
+        server.serve(),
+        bot.remove_webhook(),
+        bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH),
         scheduler(),
-        flush_messages(),
-        bot.polling(non_stop=True),
     )
 
 
@@ -175,8 +169,11 @@ if __name__ == "__main__":
         pass
     finally:
         logger.info("Stopping bot by user request...")
-        _cancel_tasks({main_task, *asyncio.all_tasks(loop)}, loop)
+
+        cancel_tasks({main_task, *asyncio.all_tasks(loop)}, loop)
         loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.run_until_complete(session_manager.session.close())
+        loop.stop()
         loop.close()
         asyncio.set_event_loop(None)
         sys.exit(0)

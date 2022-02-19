@@ -1,8 +1,9 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
+from config.bot import bot
 
 
-async def set_bot_commands(bot: AsyncTeleBot):
+async def set_bot_commands():
     # TODO: dynamically generate bot commands
     """
     Sets bot's commands. Keep in sync with actual commands.

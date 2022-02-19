@@ -19,6 +19,8 @@ pytest = "^7.0.1"
 pytest-mock = "^3.7.0"
 pytest-trio = "^0.7.0"
 pytest-cov = "^3.0.0"
+fastapi = "^0.74.0"
+uvicorn = "^0.17.5"
 
 [tool.poetry.dev-dependencies]
 black = {version = "^22.1.0", allow-prereleases = true}
