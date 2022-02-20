@@ -147,13 +147,13 @@ async def main():
 
     aioschedule.every(MESSAGES_FLUSH_INTERVAL).seconds.do(flush_messages).tag(0)
 
+    await bot.remove_webhook()
+    await bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
     await asyncio.gather(
         session_manager.session.close(),  # Fixes aiohttp warning for unclosed session
         db_setup(),
         set_bot_commands(),
         server.serve(),
-        bot.remove_webhook(),
-        bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH),
         scheduler(),
     )
 
