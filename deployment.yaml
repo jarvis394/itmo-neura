@@ -1,0 +1,46 @@
+# kubernetes-fastapi LoadBalancer Service
+# Enables the pods in a deployment to be accessible from outside the cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: loadbalancer-svc
+spec:
+  selector:
+    app: neura
+  ports:
+    - protocol: 'TCP'
+      port: 4000
+      targetPort: 4000
+  type: LoadBalancer
+
+---
+# neura Deployment
+# Defines the deployment of the app running in a pod on any worker node
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neura
+  labels:
+    app: neura
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: neura
+  template:
+    metadata:
+      labels:
+        app: neura
+    spec:
+      containers:
+        - name: neura
+          image: itmo-neura:latest
+          ports:
+            - containerPort: 4000
+          imagePullPolicy: Never
+          resources:
+            requests:
+              cpu: '250m'
+          envFrom:
+            - secretRef:
+                name: itmo-neura-secrets

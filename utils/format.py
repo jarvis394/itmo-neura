@@ -22,10 +22,10 @@ def censor_sentence(result: str) -> str:
 
 
 def improve_sentence(result: str) -> str:
-    rnd = randint(0, 10)
+    rnd = randint(0, 20)
     if rnd == 0:
         return result.upper()
-    elif rnd in range(1, 6):
+    elif rnd in range(1, 15):
         return result
     else:
         improved_result = ""

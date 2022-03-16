@@ -4,7 +4,7 @@ WORKDIR /app
 
 FROM base as poetry
 RUN pip install poetry==1.1.12
-COPY poetry.lock pyproject.toml /app/
+COPY pyproject.toml /app/
 RUN poetry export -o requirements.txt
 
 FROM base as build

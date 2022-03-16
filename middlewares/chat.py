@@ -22,7 +22,7 @@ class ChatMiddleware(BaseMiddleware):
             message.chat.type
             not in [
                 "group",
-                "superchat",
+                "supergroup",
             ]
             and not start_command
         ):
