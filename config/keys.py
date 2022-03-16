@@ -11,6 +11,12 @@ HOST = os.getenv("HOST")
 WEBHOOK_HOST = os.getenv("WEBHOOK_HOST")
 if not WEBHOOK_HOST:
     WEBHOOK_HOST = ngrok.connect(PORT, "http").public_url
-    logger.warning(f"WEBHOOK_HOST not found in .env, initializing ngrok tunnel at: {WEBHOOK_HOST}")
-WEBHOOK_URL_BASE = f"https://{WEBHOOK_HOST.split('//')[1]}"
+    logger.warning(
+        f"WEBHOOK_HOST not found in .env, initializing ngrok tunnel at: {WEBHOOK_HOST}"
+    )
+WEBHOOK_URL_BASE = (
+    f"https://{WEBHOOK_HOST.split('//')[1]}"
+    if WEBHOOK_HOST.startswith("http")
+    else WEBHOOK_HOST
+)
 WEBHOOK_URL_PATH = f"/{TELEGRAM_BOT_API_TOKEN}/"
