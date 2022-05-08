@@ -157,3 +157,6 @@ cython_debug/
 #.idea/
 
 .vscode
+
+# kubernetes secrets file
+secrets.yaml
