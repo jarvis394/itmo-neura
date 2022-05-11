@@ -6,10 +6,12 @@ from .start import StartCommand
 from .help import HelpCommand
 from .count import CountCommand
 from .generate import GenerateCommand
+from .jpeg import JpegCommand
 
 COMMANDS: List[Command] = [
     StartCommand,
     HelpCommand,
     CountCommand,
-    GenerateCommand
+    GenerateCommand,
+    JpegCommand
 ]

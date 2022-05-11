@@ -13,4 +13,5 @@ class StartCommand(Command):
         super().__init__(*args)
 
     async def exec(self, message: types.Message):
+        await bot.send_chat_action(message.chat.id, "typing")
         await bot.send_message(message.chat.id, Reply.ON_START)

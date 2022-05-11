@@ -13,10 +13,10 @@ def is_command(message: types.Message, command: Command):
     Example:
     /start or @mention_prefix start or @mention_prefix, start
     """
-    if not message or not message.text:
+    if not message or not (message.text or message.caption):
         return False
-    
-    text = message.text.strip()
+
+    text = (message.text or message.caption).strip()
     args = text.split(" ")
     possible_matches = [command.name] + command.aliases
 

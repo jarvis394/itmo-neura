@@ -16,6 +16,7 @@ class GenerateCommand(Command):
         super().__init__(*args)
 
     async def exec(self, message: types.Message):
+        await bot.send_chat_action(message.chat.id, 'typing')
         storage = MessagesStorage(message.chat.id)
 
         messages = await storage.get()
