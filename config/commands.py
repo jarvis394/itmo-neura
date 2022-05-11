@@ -16,6 +16,8 @@ async def set_bot_commands():
             ),
             types.BotCommand("help", "Sends bot's commands"),
             types.BotCommand("count", "Sends a number of saved messages to learn on"),
+            types.BotCommand("jpeg", "Sends low-quality jpeg funny"),
+            types.BotCommand("demotivate", "Generates random demotivator iamge based on chat history"),
         ],
         scope=types.BotCommandScopeAllGroupChats(),
     )
