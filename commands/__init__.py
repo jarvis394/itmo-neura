@@ -7,11 +7,13 @@ from .help import HelpCommand
 from .count import CountCommand
 from .generate import GenerateCommand
 from .jpeg import JpegCommand
+from .demotivate import DemotivateCommand
 
 COMMANDS: List[Command] = [
     StartCommand,
     HelpCommand,
     CountCommand,
     GenerateCommand,
-    JpegCommand
+    JpegCommand,
+    DemotivateCommand
 ]
