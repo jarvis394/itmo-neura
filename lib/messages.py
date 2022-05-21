@@ -1,7 +1,6 @@
 import os
 from typing import List
 from aiofile import async_open
-from telebot import types
 from config.constants import MESSAGES_SAMPLES_DIR
 from utils.format import unescape_string, escape_string
 
@@ -30,7 +29,7 @@ class MessagesStorage:
         self.chat_id = id
         self.pathname = pathname
 
-    async def push(self, messages: List[types.Message]) -> int:
+    async def push(self, messages: List[str]) -> int:
         write_mode = "w" if not os.path.exists(self.pathname) else "a"
 
         # Messages folder should always be present as it is being created at the

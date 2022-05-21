@@ -18,7 +18,7 @@ SPACE = 24
 TEXT_ANCHOR = 'mt'
 TEXT_ALIGN = 'center'
 TITLE_TEXT_FONT = ImageFont.truetype("fonts/TimesNewRoman.ttf", TITLE_TEXT_SIZE)
-LOWER_TEXT_FONT = ImageFont.truetype("fonts/ImpactRegular.ttf", LOWER_TEXT_SIZE)
+LOWER_TEXT_FONT = ImageFont.truetype("fonts/Arial.ttf", LOWER_TEXT_SIZE)
 
 TITLE_TEXT_SPACING = TEXT_SPACING + TITLE_TEXT_SIZE
 LOWER_TEXT_SPACING = TEXT_SPACING // 1.7 + LOWER_TEXT_SIZE

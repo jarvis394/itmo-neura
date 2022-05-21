@@ -9,6 +9,7 @@ from functools import partial
 from commands import COMMANDS
 from config.keys import HOST, PORT, WEBHOOK_URL_BASE, WEBHOOK_URL_PATH
 from config.app import app
+from lib.command import Command
 from middlewares import MIDDLEWARES
 from config.commands import set_bot_commands
 from config.replies import Reply
@@ -57,7 +58,7 @@ for MiddlewareClass in MIDDLEWARES:
 _commands_loaded = 0
 for CommandClass in COMMANDS:
     command_name = CommandClass.name
-    c = CommandClass()
+    c: Command = CommandClass()
     _commands_loaded += 1
     try:
         bot.add_message_handler(

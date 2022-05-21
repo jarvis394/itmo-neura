@@ -6,7 +6,7 @@ START = "__START___"
 END = "__END___"
 
 
-def generate(samples: List[str], attempts: int):
+def generate(samples: List[str], attempts: int, max_length: int = None):
     if not samples:
         return None
 
@@ -36,7 +36,7 @@ def generate(samples: List[str], attempts: int):
 
         for frame in words:
             next_frame = choice(frame_map[frame])
-            if next_frame == END:
+            if next_frame == END or (max_length != None and len(words) >= max_length):
                 break
             else:
                 words.append(next_frame)

@@ -1,3 +1,4 @@
+from random import randint
 from lib.command import Command
 import telebot.types as types
 from config.bot import MESSAGES, bot
@@ -82,7 +83,9 @@ class JpegCommand(Command):
         messages.extend(
             MESSAGES.get(message.chat.id) or []
         )  # Extend storage samples with samples in memory
-        sentence = generator.generate(samples=messages, attempts=50)
+        sentence = generator.generate(
+            samples=messages, attempts=50, max_length=randint(5, 10)
+        )
 
         if not sentence:
             return await bot.send_message(
@@ -100,6 +103,8 @@ class JpegCommand(Command):
         buffer = BytesIO()
         img = Image.open(BytesIO(file))
         font = ImageFont.truetype("fonts/ImpactRegular.ttf", 56)
+        font_size = min(img.size[0] / font.getsize_multiline(sentence)[0] * 56 * 2, 96)
+        font = ImageFont.truetype("fonts/ImpactRegular.ttf", int(font_size))
         y = img.height - font.getsize(sentence)[1] - 32
 
         # Add randomly generated text
