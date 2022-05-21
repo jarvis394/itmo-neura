@@ -14,7 +14,7 @@ class ReplyMiddleware(BaseMiddleware):
     async def pre_process(self, message: types.Message, data):
         if message.reply_to_message and message.reply_to_message.from_user.id == BOT_ID:
             command = GenerateCommand()
-            await command.exec(message)
+            await command.exec(message, should_reply=True)
             return CancelUpdate()
 
     async def post_process(self, message, data, exception):
