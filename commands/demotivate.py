@@ -76,7 +76,7 @@ class DemotivateCommand(Command):
 
 		image_width = BACKGROUND_WIDTH - 2 * PADDING
 		image_height = image.height * image_width // image.width
-		image.thumbnail((image_width, image_height), Image.ANTIALIAS)
+		image = image.resize((image_width, image_height), 2)
 
 		calculated_background_height = 2 * PADDING_Y + 2 * BORDER_PADDING + image.height + len(
 		    multiline_title_text) * TITLE_TEXT_SPACING - TEXT_SPACING + (
