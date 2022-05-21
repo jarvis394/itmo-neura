@@ -6,7 +6,7 @@ authors = ["jarvis394 <tarnatovski@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
-pyTelegramBotAPI = "^4.4.0"
+pyTelegramBotAPI = "^4.5.1"
 python-dotenv = "^0.19.2"
 aiohttp = "^3.8.1"
 aioschedule = "^0.5.2"

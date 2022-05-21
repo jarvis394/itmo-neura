@@ -15,8 +15,8 @@ class GenerateCommand(Command):
     def __init__(self, *args) -> None:
         super().__init__(*args)
 
-    async def exec(self, message: types.Message):
-        await bot.send_chat_action(message.chat.id, 'typing')
+    async def exec(self, message: types.Message, should_reply: bool = False):
+        await bot.send_chat_action(message.chat.id, "typing")
         storage = MessagesStorage(message.chat.id)
 
         messages = await storage.get()
@@ -32,7 +32,10 @@ class GenerateCommand(Command):
         if sentence:
             sentence = format.censor_sentence(sentence)
             sentence = format.improve_sentence(sentence)
-            await bot.send_message(message.chat.id, sentence)
+            if should_reply:
+                await bot.reply_to(message, sentence)
+            else:
+                await bot.send_message(message.chat.id, sentence)
         else:  # Not enough samples to generate message
             logger.warning(
                 f"Generate command failed for chat {message.chat.id}: not enough messages"
