@@ -1,7 +1,8 @@
 from pathlib import Path
+from config.keys import IS_PRODUCTION
 import os
 
-BOT_ID = 5023321394
+BOT_ID = 5023321394 if IS_PRODUCTION else 5528718181
 """
 Bot ID
 """
@@ -21,7 +22,7 @@ BOT_PREFIX = "/"
 Bot's prefix
 """
 
-BOT_MENTION_PREFIX = "@itmo_neura_bot"
+BOT_MENTION_PREFIX = "@itmo_neura_bot" if IS_PRODUCTION else "@itmo_neura_dev_bot"
 """
 Bot's mention prefix
 """
