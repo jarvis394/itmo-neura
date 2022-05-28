@@ -13,7 +13,7 @@ class MentionMiddleware(Middleware):
         self.update_types = ["message"]
 
     async def pre_process(self, message: types.Message, data):
-        if message.text.startswith(BOT_MENTION_PREFIX) and not is_command(message):
+        if message.text and message.text.startswith(BOT_MENTION_PREFIX) and not is_command(message):
             command = GenerateCommand()
             await command.exec(message, should_reply=True)
             return CancelUpdate()

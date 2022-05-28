@@ -15,7 +15,12 @@ class GenerateCommand(Command):
     def __init__(self, *args) -> None:
         super().__init__(*args)
 
-    async def exec(self, message: types.Message, should_reply: bool = False):
+    async def exec(
+        self,
+        message: types.Message,
+        should_reply: bool = False,
+        ignore_error: bool = False,
+    ):
         await bot.send_chat_action(message.chat.id, "typing")
         storage = MessagesStorage(message.chat.id)
 
@@ -37,7 +42,9 @@ class GenerateCommand(Command):
             else:
                 await bot.send_message(message.chat.id, sentence)
         else:  # Not enough samples to generate message
-            logger.warning(
-                f"Generate command failed for chat {message.chat.id}: not enough messages"
-            )
-            await bot.send_message(message.chat.id, Reply.ON_MESSAGES_DB_TOO_SMALL)
+            await bot.clear
+            if not ignore_error:
+                logger.warning(
+                    f"Generate command failed for chat {message.chat.id}: not enough messages"
+                )
+                await bot.send_message(message.chat.id, Reply.ON_MESSAGES_DB_TOO_SMALL)

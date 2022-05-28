@@ -7,6 +7,7 @@ from .mention import MentionMiddleware
 from .reply import ReplyMiddleware
 from .group_join import GroupJoinMiddleware
 from .collect import CollectMiddleware
+from .counter import CounterMiddleware
 
 MIDDLEWARES: List[Middleware] = [
     ChatMiddleware,
@@ -14,4 +15,5 @@ MIDDLEWARES: List[Middleware] = [
     ReplyMiddleware,
     GroupJoinMiddleware,
     CollectMiddleware,
+    CounterMiddleware,
 ]
