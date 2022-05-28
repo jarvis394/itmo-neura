@@ -42,7 +42,6 @@ class GenerateCommand(Command):
             else:
                 await bot.send_message(message.chat.id, sentence)
         else:  # Not enough samples to generate message
-            await bot.clear
             if not ignore_error:
                 logger.warning(
                     f"Generate command failed for chat {message.chat.id}: not enough messages"
