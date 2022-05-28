@@ -1,11 +1,15 @@
 from typing import List
-from telebot.asyncio_handler_backends import BaseMiddleware
+from lib.middleware import Middleware
 
 # Import all middlewares in the folder here
 from .chat import ChatMiddleware
 from .reply import ReplyMiddleware
+from .group_join import GroupJoinMiddleware
+from .collect import CollectMiddleware
 
-MIDDLEWARES: List[BaseMiddleware] = [
+MIDDLEWARES: List[Middleware] = [
     ChatMiddleware,
     ReplyMiddleware,
+    GroupJoinMiddleware,
+    CollectMiddleware,
 ]

@@ -1,11 +1,11 @@
 from telebot.async_telebot import CancelUpdate
-from telebot.asyncio_handler_backends import BaseMiddleware
 from telebot import types
 from commands.generate import GenerateCommand
 from config.constants import BOT_ID
+from lib.middleware import Middleware
 
 
-class ReplyMiddleware(BaseMiddleware):
+class ReplyMiddleware(Middleware):
     name = "ReplyMiddleware"
 
     def __init__(self) -> None:

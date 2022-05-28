@@ -1,13 +1,13 @@
 from telebot.async_telebot import CancelUpdate
-from telebot.asyncio_handler_backends import BaseMiddleware
 from commands.start import StartCommand
 from config.replies import Reply
 from config.bot import bot
 from telebot import types
+from lib.middleware import Middleware
 from utils import is_command
 
 
-class ChatMiddleware(BaseMiddleware):
+class ChatMiddleware(Middleware):
     name = "ChatMiddleware"
 
     def __init__(self) -> None:

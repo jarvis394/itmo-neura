@@ -45,7 +45,7 @@ def generate_multiline_text(text: str, max_width: int, font: ImageFont.ImageFont
 
 class DemotivateCommand(Command):
 	name = "demotivate"
-	description = "Generates random demotivator iamge based on chat history"
+	description = "Generates random demotivator image based on chat history"
 	aliases = ["dem", "демотиватор", "дем"]
 
 	def __init__(self, *args) -> None:

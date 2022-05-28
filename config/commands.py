@@ -1,24 +1,17 @@
-from telebot.async_telebot import AsyncTeleBot
+from typing import List
 from telebot import types
 from config.bot import bot
+from lib.command import Command
 
 
-async def set_bot_commands():
-    # TODO: dynamically generate bot commands
+async def set_bot_commands(commands: List[Command]):
     """
-    Sets bot's commands. Keep in sync with actual commands.
+    Sets bot's commands
     """
+    bot_commands = list(map(lambda x: types.BotCommand(x.name, x.description), commands))
     await bot.delete_my_commands()
     await bot.set_my_commands(
-        commands=[
-            types.BotCommand(
-                "generate", "Generates a random message based on chat history"
-            ),
-            types.BotCommand("help", "Sends bot's commands"),
-            types.BotCommand("count", "Sends a number of saved messages to learn on"),
-            types.BotCommand("jpeg", "Sends low-quality jpeg funny"),
-            types.BotCommand("demotivate", "Generates random demotivator iamge based on chat history"),
-        ],
+        commands=bot_commands,
         scope=types.BotCommandScopeAllGroupChats(),
     )
     await bot.set_my_commands(
