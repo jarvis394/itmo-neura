@@ -1,28 +1,33 @@
 from functools import partial
-from typing import Any, Set
-from commands import COMMANDS
+from typing import Any, List, Set
 from config.constants import BOT_MENTION_PREFIX, BOT_PREFIX
 from telebot import types
 from lib.command import Command
 from loguru import logger
 import asyncio
 from config.bot import bot
-from middlewares import MIDDLEWARES
 
 
-def is_command(message: types.Message, command: Command):
+def is_command(message: types.Message, command: Command = None):
     """
     Custom message checker that activates on mention or slash commands
 
     Example:
     /start or @mention_prefix start or @mention_prefix, start
     """
+    from commands import COMMANDS
+
     if not message or not (message.text or message.caption):
         return False
 
     text = (message.text or message.caption).strip()
     args = text.split(" ")
-    possible_matches = [command.name] + command.aliases
+    if command:
+        possible_matches: List[str] = [command.name] + command.aliases
+    else:
+        possible_matches: List[str] = []
+        for command in COMMANDS:
+            possible_matches += [command.name] + command.aliases
 
     if len(args) > 1:
         return args[0].startswith(BOT_MENTION_PREFIX) and args[1] in possible_matches
@@ -64,6 +69,8 @@ def cancel_tasks(
 
 
 def load_middlewares():
+    from middlewares import MIDDLEWARES
+
     _middlewares_loaded = 0
     for MiddlewareClass in MIDDLEWARES:
         middleware_name = MiddlewareClass.name
@@ -81,6 +88,8 @@ def load_middlewares():
 
 
 def load_commands():
+    from commands import COMMANDS
+
     _commands_loaded = 0
     for CommandClass in COMMANDS:
         command_name = CommandClass.name

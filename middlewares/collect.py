@@ -1,6 +1,7 @@
 from config.bot import MESSAGES
 from telebot import types
 from lib.middleware import Middleware
+from utils import is_command
 
 
 class CollectMiddleware(Middleware):
@@ -21,6 +22,10 @@ class CollectMiddleware(Middleware):
 
         # Message is only collected when it has length over 2
         if len(message.text) < 2:
+            return
+        
+        # Message should not be a command
+        if is_command(message):
             return
 
         if chat_id in MESSAGES:
