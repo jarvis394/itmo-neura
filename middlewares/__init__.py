@@ -8,6 +8,8 @@ from .reply import ReplyMiddleware
 from .group_join import GroupJoinMiddleware
 from .collect import CollectMiddleware
 from .counter import CounterMiddleware
+from .documents import DocumentsMiddleware
+from .callback_query import CallbackQueryMiddleware
 
 MIDDLEWARES: List[Middleware] = [
     ChatMiddleware,
@@ -16,4 +18,6 @@ MIDDLEWARES: List[Middleware] = [
     GroupJoinMiddleware,
     CollectMiddleware,
     CounterMiddleware,
+    DocumentsMiddleware,
+    CallbackQueryMiddleware,
 ]

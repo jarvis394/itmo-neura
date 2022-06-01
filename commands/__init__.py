@@ -15,5 +15,5 @@ COMMANDS: List[Command] = [
     CountCommand,
     GenerateCommand,
     JpegCommand,
-    DemotivateCommand
+    DemotivateCommand,
 ]

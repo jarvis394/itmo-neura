@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import Dict, Union
+from telebot import types
 
 
 @dataclass
@@ -7,8 +8,15 @@ class MessageState:
     counter: int
 
 
+@dataclass
+class UserState:
+    awaiting_action: str
+    initial_message: types.Message
+    command: str
+
+
 class StateManager:
-    states: Dict[int, MessageState]
+    states: Dict[int, Union[MessageState, UserState]]
 
     def __init__(self) -> None:
         self.states = {}
@@ -21,4 +29,8 @@ class StateManager:
 
     def set(self, id, data):
         self.states[id] = data
+        return True
+    
+    def remove(self, id):
+        del self.states[id]
         return True

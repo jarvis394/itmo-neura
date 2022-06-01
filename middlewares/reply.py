@@ -3,6 +3,7 @@ from telebot import types
 from commands.generate import GenerateCommand
 from config.constants import BOT_ID
 from lib.middleware import Middleware
+from utils import is_command
 
 
 class ReplyMiddleware(Middleware):
@@ -12,7 +13,7 @@ class ReplyMiddleware(Middleware):
         self.update_types = ["message"]
 
     async def pre_process(self, message: types.Message, data):
-        if message.reply_to_message and message.reply_to_message.from_user.id == BOT_ID:
+        if message.reply_to_message and message.reply_to_message.from_user.id == BOT_ID and not is_command(message):
             command = GenerateCommand()
             await command.exec(message, should_reply=True)
             return CancelUpdate()

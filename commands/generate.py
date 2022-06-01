@@ -4,7 +4,7 @@ import telebot.types as types
 from utils import generator, format
 from loguru import logger
 from config.replies import Reply
-from config.bot import bot, MESSAGES
+from config.bot import bot
 
 
 class GenerateCommand(Command):
@@ -23,11 +23,7 @@ class GenerateCommand(Command):
     ):
         await bot.send_chat_action(message.chat.id, "typing")
         storage = MessagesStorage(message.chat.id)
-
         messages = await storage.get()
-        messages.extend(
-            MESSAGES.get(message.chat.id) or []
-        )  # Extend storage samples with samples in memory
 
         try:
             sentence = generator.generate(samples=messages, attempts=50)

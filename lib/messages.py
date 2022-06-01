@@ -1,6 +1,7 @@
 import os
 from typing import List
 from aiofile import async_open
+from config.bot import MESSAGES
 from config.constants import MESSAGES_SAMPLES_DIR
 from utils.format import unescape_string, escape_string
 
@@ -42,12 +43,13 @@ class MessagesStorage:
         return len(await self.get())
 
     async def get(self) -> List[str]:
+        inmemory_messages = MESSAGES.get(self.chat_id) or []
         try:
             async with async_open(self.pathname, "r", encoding="utf-8") as f:
                 raw = await f.read()
-            return parse_raw(raw)
+            return parse_raw(raw) + inmemory_messages
         except FileNotFoundError:
-            return []
+            return inmemory_messages
 
     async def wipe(self) -> bool:
         try:

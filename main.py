@@ -5,7 +5,7 @@ from config.constants import (
 from telebot.asyncio_helper import session_manager
 from loguru import logger
 from commands import COMMANDS
-from config.keys import HOST, PORT, WEBHOOK_URL_BASE, WEBHOOK_URL_PATH
+from config.keys import ENV_TYPE, HOST, PORT, WEBHOOK_URL_BASE, WEBHOOK_URL_PATH
 from config.app import app
 from config.commands import set_bot_commands
 from utils import cancel_tasks, load_commands, load_middlewares
@@ -77,6 +77,7 @@ async def db_setup():
 
 
 async def main():
+    logger.info(f"Starting bot with ENV_TYPE: {ENV_TYPE}")
     logger.info("Started Telegram bot and async schedulers")
     logger.info(f"Started FastAPI webhooks service on port {PORT}")
     config = Config(app=app, loop=asyncio.get_event_loop(), port=PORT, host=HOST)

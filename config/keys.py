@@ -5,7 +5,8 @@ import os
 
 load_dotenv()
 
-IS_PRODUCTION = os.getenv('ENV_TYPE') == 'PRODUCTION'
+ENV_TYPE = os.getenv('ENV_TYPE')
+IS_PRODUCTION = ENV_TYPE == 'PRODUCTION'
 
 TELEGRAM_BOT_API_TOKEN = os.getenv(
     "PRODUCTION_BOT_TOKEN") if IS_PRODUCTION else os.getenv("DEVELOPMENT_BOT_TOKEN")

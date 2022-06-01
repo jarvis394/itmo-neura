@@ -1,14 +1,19 @@
 from random import randint
+from config.actions import Action
 from lib.command import Command
 import telebot.types as types
-from config.bot import MESSAGES, bot
+from config.bot import bot
 from io import BytesIO
 from PIL import Image, ImageFont, ImageDraw
+from lib.state_manager import UserState
 from utils import generator
 from lib.messages import MessagesStorage
 import math
 import textwrap
 from config.replies import Reply
+from config.states import states
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from loguru import logger
 
 
 FILL_COLOR = "white"
@@ -76,13 +81,35 @@ class JpegCommand(Command):
         super().__init__(*args)
 
     async def exec(self, message: types.Message):
+        has_attachment = bool(
+            (message.reply_to_message and message.reply_to_message.photo)
+            or message.photo
+            or message.document
+        )
+        if not has_attachment:
+            markup = InlineKeyboardMarkup()
+            markup.row_width = 1
+            markup.add(InlineKeyboardButton("Отмена", callback_data=Action.CANCEL))
+            reply_message = await bot.send_message(
+                message.chat.id, Reply.ON_IMAGE_MISSING, reply_markup=markup
+            )
+            state_key = "user" + str(message.from_user.id)
+            return states.set(
+                state_key,
+                UserState(
+                    awaiting_action=Action.UPLOAD,
+                    initial_message=reply_message,
+                    command="jpeg",
+                ),
+            )
+
+        return await self.send_image(message)
+
+    async def send_image(self, message: types.Message):
         await bot.send_chat_action(message.chat.id, "upload_photo")
 
         storage = MessagesStorage(message.chat.id)
         messages = await storage.get()
-        messages.extend(
-            MESSAGES.get(message.chat.id) or []
-        )  # Extend storage samples with samples in memory
         sentence = generator.generate(
             samples=messages, attempts=50, max_length=randint(5, 10)
         )
@@ -95,8 +122,14 @@ class JpegCommand(Command):
         # Make text "loud"
         sentence = sentence.upper()
 
+        if message.photo:
+            file_id = message.photo[-1].file_id
+        elif message.document:
+            file_id = message.document.file_id
+        elif message.reply_to_message:
+            file_id = message.reply_to_message.photo[-1].file_id
         # Get file information from Telegram storage API
-        file_object = await bot.get_file(message.photo[-1].file_id)
+        file_object = await bot.get_file(file_id)
         # Get binary data of the image
         file = await bot.download_file(file_object.file_path)
 
@@ -110,6 +143,10 @@ class JpegCommand(Command):
         # Add randomly generated text
         add_text(img, sentence, y, font, FILL_COLOR, BORDER_WIDTH, BORDER_COLOR)
 
-        img.save(buffer, IMAGE_FORMAT, quality=IMAGE_QUALITY)
+        try:
+            img = img.convert("RGB")
+            img.save(buffer, IMAGE_FORMAT, quality=IMAGE_QUALITY)
+        except Exception as e:
+            return logger.error("Got exception on trying to save image: " + e)
 
-        await bot.send_photo(message.chat.id, buffer.getvalue())
+        return await bot.send_photo(message.chat.id, buffer.getvalue())
